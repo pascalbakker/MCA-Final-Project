@@ -1,38 +1,49 @@
+
 package Scoreboard;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
 
 public class Issuer {
-    private Queue<Instruction> instruction_set;
-    ArrayList<Instruction> visibleinstructions;
 
-    Issuer(Instruction[] instructions){
-        visibleinstructions = new ArrayList<Instruction>();
-        instruction_set = new LinkedList<>();
-        for(Instruction instruction: instructions){
-            visibleinstructions.add(instruction);
-            instruction_set.add(instruction);
-        }
+	private final Queue<Instruction> instruction_set;
 
-    }
+	ArrayList<Instruction> visibleinstructions;
 
-    public Instruction popTop(){
-        visibleinstructions.remove(instruction_set.peek());
-        return instruction_set.poll();
+	Issuer(final List<Instruction> instructions) {
+		this.visibleinstructions = new ArrayList<>();
+		this.instruction_set = new LinkedList<>();
+		for (final Instruction instruction : instructions) {
+			this.visibleinstructions.add(instruction);
+			this.instruction_set.add(instruction);
+		}
 
-    }
+	}
 
-    public Instruction peekTop(){
-        return instruction_set.peek();
-    }
+	public Instruction peekTop() {
 
-    public String toString(){
-        String toString = "Queue:\n";
-        for(Instruction instruction:visibleinstructions){
-            if(instruction!=null)
-                toString+=instruction.toString()+"\n";
-        }
-        toString+="\n";
-        return toString;
-    }
+		return this.instruction_set.peek();
+	}
+
+	public Instruction popTop() {
+
+		this.visibleinstructions.remove(this.instruction_set.peek());
+		return this.instruction_set.poll();
+
+	}
+
+	@Override
+	public String toString() {
+
+		String toString = "Queue:\n";
+		for (final Instruction instruction : this.visibleinstructions) {
+			if (instruction != null) {
+				toString += instruction.toString() + "\n";
+			}
+		}
+		toString += "\n";
+		return toString;
+	}
 }

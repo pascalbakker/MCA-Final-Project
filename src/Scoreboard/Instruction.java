@@ -1,73 +1,152 @@
+
 package Scoreboard;
 
-enum InstructionType{
-    INT,MULT,FL,DIV,None;
-}
+public class Instruction implements Comparable<Instruction> {
 
-public class Instruction implements Comparable<Instruction>{
+	//Example Instruction: ADD R0 R1,45 (First instruction)
 
-    //Example Instruction: ADD R0 R1,45 (First instruction)
+	public enum InstructionType {
+		INT, MULT, FL, DIV, None;
+	}
 
-    InstructionType instructionType;
-    String firstR;  //R0
-    String secondR; //R1
-    String thirdR; //45
-    int order; //1
-    int readOpCycle; //Cycle it is put into the readOP
-    int WARCCycle; //Cycle it is put into the WARC
-    int writeCycle; //Cycle it is put in the writeback
+	/**
+	 * Determines what Unit to put it into
+	 *
+	 * @param command
+	 * @return InstructionType
+	 */
+	private static InstructionType determineInstructionType(final String command) {
 
-    public Instruction(InstructionType instructType, int order){
-        instructionType=instructType;
-        this.order=order;
-    }
+		if (command.equalsIgnoreCase("LD") || command.equalsIgnoreCase("STR")) {
+			return InstructionType.INT;
+		} else if (command.equalsIgnoreCase("MULT")) {
+			return InstructionType.MULT;
+		} else if (command.equalsIgnoreCase("DIV")) {
+			return InstructionType.DIV;
+		} else {
+			return InstructionType.FL;
+		}
+	}
 
-    public Instruction(){
-        instructionType=InstructionType.None;
-        order=-1;
-    }
+	private final String command;
 
-    public Instruction(String command, String r0, String r1, String r2, int order){
-        instructionType = determineInstructionType(command);
-        firstR = r0;
-        secondR = r1;
-        thirdR = r2;
-        this.order=order;
-    }
+	private final InstructionType instructionType;
 
-    /** Determines what Unit to put it into
-     *
-     * @param command
-     * @return InstructionType
-     */
-    private static InstructionType determineInstructionType(String command){
-        if(command.equalsIgnoreCase("LD")||command.equalsIgnoreCase("STR")) return InstructionType.INT;
-        else if(command.equalsIgnoreCase("MULT")) return InstructionType.MULT;
-        else if(command.equalsIgnoreCase("DIV")) return InstructionType.DIV;
-        else return InstructionType.FL;
-    }
+	private final String firstR;  //R0
 
-    public InstructionType getInstructionType() {
-        return instructionType;
-    }
+	private final String secondR; //R1
 
-    public int getOrder(){
-        return order;
-    }
+	private final String thirdR; //45
 
-    public boolean equals(Instruction o){
-        return instructionType==o.getInstructionType();
-    }
+	private final int order; //1
 
-    public String toString(){
-        if(instructionType==InstructionType.None) return " ";
-        return instructionType+"";
-    }
+	private int readOpCycle; //Cycle it is put into the readOP
 
-    @Override
-    public int compareTo(Instruction o) {
-        if(order<o.order) return 1;
-        else if(order>o.order) return -1;
-        else return 0;
-    }
+	private int WARCCycle; //Cycle it is put into the WARC
+
+	private int writeCycle; //Cycle it is put in the writeback
+
+	public Instruction() {
+		this.instructionType = InstructionType.None;
+		this.order = -1;
+		this.firstR = null;
+		this.secondR = null;
+		this.thirdR = null;
+		this.command = null;
+	}
+
+	public Instruction(final InstructionType instructType, final int order) {
+		this.instructionType = instructType;
+		this.order = order;
+		this.firstR = null;
+		this.secondR = null;
+		this.thirdR = null;
+		this.command = null;
+	}
+
+	public Instruction(final String command, final String r0, final String r1, final String r2, final int order) {
+		this.instructionType = Instruction.determineInstructionType(command);
+		this.firstR = r0;
+		this.secondR = r1;
+		this.thirdR = r2;
+		this.order = order;
+		this.command = command;
+	}
+
+	@Override
+	public int compareTo(final Instruction o) {
+
+		if (this.order < o.order) {
+			return 1;
+		} else if (this.order > o.order) {
+			return -1;
+		} else {
+			return 0;
+		}
+	}
+
+	public boolean equals(final Instruction o) {
+
+		return this.instructionType == o.getInstructionType();
+	}
+
+	public String getCommand() {
+
+		return this.command;
+	}
+
+	public String getFirstR() {
+
+		return this.firstR;
+	}
+
+	public InstructionType getInstructionType() {
+
+		return this.instructionType;
+	}
+
+	public int getOrder() {
+
+		return this.order;
+	}
+
+	public int getReadOpCycle() {
+
+		return this.readOpCycle;
+	}
+
+	public String getSecondR() {
+
+		return this.secondR;
+	}
+
+	public String getThirdR() {
+
+		return this.thirdR;
+	}
+
+	public int getWriteCycle() {
+
+		return this.writeCycle;
+	}
+
+	public void setReadOpCycle(final int readOpCycle) {
+
+		this.readOpCycle = readOpCycle;
+	}
+
+	public void setWriteCycle(final int writeCycle) {
+
+		this.writeCycle = writeCycle;
+	}
+
+	@Override
+	public String toString() {
+
+		if (this.instructionType == InstructionType.None) {
+			return " ";
+		}
+		return this.instructionType + "";
+	}
+
 }

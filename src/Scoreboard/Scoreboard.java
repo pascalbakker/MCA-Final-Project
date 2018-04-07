@@ -1,224 +1,249 @@
+
 package Scoreboard;
 
 import java.util.ArrayList;
+import java.util.List;
 
-public class Scoreboard{
+public class Scoreboard {
 
-    private Unit INT,M,FL,DIV;
-    private Issuer issuer;
-    private int cycle;
-    private ArrayList<Instruction> writeback;
-    private Register storeRegister;
-    private CurrentRegister currentRegister;
+	//	//TESTER METHOD
+	//	public static void main(final String[] args) {
+	//
+	//		final Instruction[] instructions = { new Instruction("LD", "R6", "36", "0", 1), new Instruction("LD", "R2", "45", "0", 2), new Instruction("LD", "R4", "45", "0", 3), new Instruction("MULT", "R0", "R2", "R4", 4), new Instruction("SUB", "R8", "R6", "R2", 5), new Instruction("DIV", "R10", "R0", "R6", 6), new Instruction("ADD", "R6", "R8", "R2", 7) };
+	//
+	//		final Scoreboard scoreboard = new Scoreboard(instructions, true);
+	//
+	//		while (scoreboard.writeback.size() != instructions.length) {
+	//			System.out.println(scoreboard.queueToString());
+	//			scoreboard.printRegisters();
+	//			System.out.println(scoreboard.toString());
+	//			scoreboard.oneClock();
+	//		}
+	//		System.out.println(scoreboard.queueToString());
+	//		scoreboard.printRegisters();
+	//		System.out.println(scoreboard.toString());
+	//		scoreboard.oneClock();
+	//	}
 
+	private final Unit INT, M, FL, DIV;
 
-    public Scoreboard(Instruction[]instructionSet, boolean isPipelined){
-        cycle = 0;
-        writeback = new ArrayList<Instruction>();
-        INT = new Unit(1,isPipelined);
-        M = new Unit(10,isPipelined);
-        FL = new Unit(2,isPipelined);
-        DIV = new Unit(40,isPipelined);
-        issuer =  new Issuer(instructionSet);
-        storeRegister = new Register();
-        currentRegister = new CurrentRegister();
-    }
+	private final Issuer issuer;
 
-    //PRIVATE METHODS
+	private int cycle;
 
-    /** This method takes instructions from the queue and puts it in the correct readOP
-     *
-     */
-    private void oneClockIssuer(){
-        //First get instruction from Queue and put in proper set
-        Instruction queuedInstruction = issuer.peekTop();
-        if(queuedInstruction==null) return;
+	private final ArrayList<Instruction> writeback;
 
-        //Add instruction to proper readOP
-        switch (queuedInstruction.getInstructionType()){
-            case FL:
-                if(FL.readOPIsOpen()){
-                    queuedInstruction.readOpCycle = cycle;
-                    currentRegister.addRegister(queuedInstruction.firstR);
-                    FL.readOp=queuedInstruction;
-                    issuer.popTop();
-                }
-                break;
-            case MULT:
-                if(M.readOPIsOpen()){
-                    queuedInstruction.readOpCycle = cycle;
-                    currentRegister.addRegister(queuedInstruction.firstR);
-                    M.readOp=queuedInstruction;
-                    issuer.popTop();
-                }
-                break;
-            case INT:
-                if(INT.readOPIsOpen()){
-                    queuedInstruction.readOpCycle = cycle;
-                    currentRegister.addRegister(queuedInstruction.firstR);
-                    INT.readOp=queuedInstruction;
-                    issuer.popTop();
-                }
-                break;
-            case DIV:
-                if(DIV.readOPIsOpen()){
-                    queuedInstruction.readOpCycle = cycle;
-                    currentRegister.addRegister(queuedInstruction.firstR);
-                    DIV.readOp=queuedInstruction;
-                    issuer.popTop();
-                }
-                break;
-        }
-    }
+	private final Register storeRegister;
 
-    /** This method takes the instruction with the lowest order and puts it into the writeback Array
-     *
-     */
-    private void writeBackInOrderOneClock(){
-        int currentOrder;
-        if(writeback.size()==0) currentOrder=0;
-        else currentOrder = writeback.get(writeback.size()-1).getOrder();
+	private final CurrentRegister currentRegister;
 
-        if(FL.WARC.getOrder()-1==currentOrder){
-            FL.WARC.writeCycle = cycle;
-            writeback.add(FL.WARC);
-            storeRegister.addRegister(FL.WARC.firstR);
-            currentRegister.removeRegister(FL.WARC.firstR);
-            FL.WARC=new Instruction();
-        }else if(M.WARC.getOrder()-1==currentOrder){
-            M.WARC.writeCycle = cycle;
-            writeback.add(M.WARC);
-            storeRegister.addRegister(M.WARC.firstR);
-            currentRegister.removeRegister(M.WARC.firstR);
-            M.WARC=new Instruction();
-        } else if(DIV.WARC.getOrder()-1==currentOrder){
-            DIV.WARC.writeCycle = cycle;
-            writeback.add(DIV.WARC);
-            storeRegister.addRegister(DIV.WARC.firstR);
-            currentRegister.removeRegister(DIV.WARC.firstR);
-            DIV.WARC=new Instruction();
-        }else if(INT.WARC.getOrder()-1==currentOrder) {
-            INT.WARC.writeCycle = cycle;
-            writeback.add(INT.WARC);
-            storeRegister.addRegister(INT.WARC.firstR);
-            currentRegister.removeRegister(INT.WARC.firstR);
-            INT.WARC = new Instruction();
-        }
-    }
+	//PRIVATE METHODS
 
-    //PUBLIC METHODS
+	public Scoreboard(final List<Instruction> instructionSet, final boolean isPipelined) {
+		this.cycle = 0;
+		this.writeback = new ArrayList<>();
+		this.INT = new Unit(1, isPipelined);
+		this.M = new Unit(10, isPipelined);
+		this.FL = new Unit(2, isPipelined);
+		this.DIV = new Unit(40, isPipelined);
+		this.issuer = new Issuer(instructionSet);
+		this.storeRegister = new Register();
+		this.currentRegister = new CurrentRegister();
+	}
 
-    /** Runs Scoreboard for one clock cycle
-     *
-     */
-    public void oneClock(){
-        //First writeback
-        writeBackInOrderOneClock();
+	public ArrayList<String> getCurrentRegister() {
 
-        //Then Units
-        FL.oneClock(currentRegister,storeRegister);
-        INT.oneClock(currentRegister,storeRegister);
-        M.oneClock(currentRegister,storeRegister);
-        DIV.oneClock(currentRegister,storeRegister);
+		return this.currentRegister.registers;
+	}
 
-        //Then issuer
-        oneClockIssuer();
-        cycle++;
+	//PUBLIC METHODS
 
-    }
+	/**
+	 * Get the current cycle
+	 *
+	 * @return int
+	 */
+	public int getCycle() {
 
-    /** Prints the scoreboard
-     *
-     * @return String
-     */
-    public String toString(){
-        String scoreboardString = "\nCycle: "+cycle+"\n INT "+INT.toString()+"\n FL "+FL.toString()+"\n MULT "+M.toString()+"\n DIV"+DIV.toString();
-        return scoreboardString;
-    }
+		return this.cycle;
+	}
 
-    /** Prints all instructions in the queue
-     *
-     * @return String
-     */
-    public String queueToString(){
-        return issuer.toString();
-    }
+	public Unit getDIV() {
 
-    /** Get the current cycle
-     *
-     * @return int
-     */
-    public int getCycle(){
-        return cycle;
-    }
+		return this.DIV;
+	}
 
-    /** Print array of the current and store reigster
-     *
-     */
-    public void printRegisters(){
-        System.out.println("currentRegister: "+currentRegister.registers.toString());
-        System.out.println("storeRegister: "+storeRegister.registers.toString());
-    }
+	public Unit getFL() {
 
-    //GETTERS
-    public Issuer getIssuer() {
-        return issuer;
-    }
+		return this.FL;
+	}
 
-    public ArrayList getCurrentRegister() {
-        return currentRegister.registers;
-    }
+	public Unit getINT() {
 
-    public ArrayList getStoreRegister() {
-        return storeRegister.registers;
-    }
+		return this.INT;
+	}
 
-    public Unit getDIV() {
-        return DIV;
-    }
+	//GETTERS
+	public Issuer getIssuer() {
 
-    public Unit getINT(){
-        return INT;
-    }
+		return this.issuer;
+	}
 
-    public Unit getFL() {
-        return FL;
-    }
+	public Unit getM() {
 
-    public Unit getM() {
-        return M;
-    }
+		return this.M;
+	}
 
-    public ArrayList<Instruction> getWriteback() {
-        return writeback;
-    }
+	public ArrayList<String> getStoreRegister() {
 
-    //TESTER METHOD
-    public static void main(String[] args){
-        Instruction[] instructions = {new Instruction("LD","R6","36","0",1),
-                new Instruction("LD","R2","45","0",2),
-                new Instruction("LD","R4","45","0",3),
-                new Instruction("MULT","R0","R2","R4",4),
-                new Instruction("SUB","R8","R6","R2",5),
-                new Instruction("DIV","R10","R0","R6",6),
-                new Instruction("ADD","R6","R8","R2",7)};
+		return this.storeRegister.registers;
+	}
 
+	public ArrayList<Instruction> getWriteback() {
 
-        Scoreboard scoreboard = new Scoreboard(instructions,true);
+		return this.writeback;
+	}
 
-        while(scoreboard.writeback.size()!=instructions.length){
-            System.out.println(scoreboard.queueToString());
-            scoreboard.printRegisters();
-            System.out.println(scoreboard.toString());
-            scoreboard.oneClock();
-        }
-        System.out.println(scoreboard.queueToString());
-        scoreboard.printRegisters();
-        System.out.println(scoreboard.toString());
-        scoreboard.oneClock();
-    }
+	/**
+	 * Runs Scoreboard for one clock cycle
+	 *
+	 */
+	public void oneClock() {
 
+		//First writeback
+		this.writeBackInOrderOneClock();
 
+		//Then Units
+		this.FL.oneClock(this.currentRegister, this.storeRegister);
+		this.INT.oneClock(this.currentRegister, this.storeRegister);
+		this.M.oneClock(this.currentRegister, this.storeRegister);
+		this.DIV.oneClock(this.currentRegister, this.storeRegister);
 
+		//Then issuer
+		this.oneClockIssuer();
+		this.cycle++;
+
+	}
+
+	/**
+	 * This method takes instructions from the queue and puts it in the correct readOP
+	 *
+	 */
+	private void oneClockIssuer() {
+
+		//First get instruction from Queue and put in proper set
+		final Instruction queuedInstruction = this.issuer.peekTop();
+		if (queuedInstruction == null) {
+			return;
+		}
+
+		//Add instruction to proper readOP
+		switch (queuedInstruction.getInstructionType()) {
+			case FL:
+				if (this.FL.readOPIsOpen()) {
+					queuedInstruction.setReadOpCycle(this.cycle);
+					this.currentRegister.addRegister(queuedInstruction.getFirstR());
+					this.FL.readOp = queuedInstruction;
+					this.issuer.popTop();
+				}
+				break;
+			case MULT:
+				if (this.M.readOPIsOpen()) {
+					queuedInstruction.setReadOpCycle(this.cycle);
+					this.currentRegister.addRegister(queuedInstruction.getFirstR());
+					this.M.readOp = queuedInstruction;
+					this.issuer.popTop();
+				}
+				break;
+			case INT:
+				if (this.INT.readOPIsOpen()) {
+					queuedInstruction.setReadOpCycle(this.cycle);
+					this.currentRegister.addRegister(queuedInstruction.getFirstR());
+					this.INT.readOp = queuedInstruction;
+					this.issuer.popTop();
+				}
+				break;
+			case DIV:
+				if (this.DIV.readOPIsOpen()) {
+					queuedInstruction.setReadOpCycle(this.cycle);
+					this.currentRegister.addRegister(queuedInstruction.getFirstR());
+					this.DIV.readOp = queuedInstruction;
+					this.issuer.popTop();
+				}
+				break;
+		}
+	}
+
+	/**
+	 * Print array of the current and store reigster
+	 *
+	 */
+	public String printRegisters() {
+
+		return "currentRegister: " + this.currentRegister.registers.toString() + "\n" + "storeRegister: " + this.storeRegister.registers.toString();
+
+	}
+
+	/**
+	 * Prints all instructions in the queue
+	 *
+	 * @return String
+	 */
+	public String queueToString() {
+
+		return this.issuer.toString();
+	}
+
+	/**
+	 * Prints the scoreboard
+	 *
+	 * @return String
+	 */
+	@Override
+	public String toString() {
+
+		final String scoreboardString = "\nCycle: " + this.cycle + "\n INT " + this.INT.toString() + "\n FL " + this.FL.toString() + "\n MULT " + this.M.toString() + "\n DIV" + this.DIV.toString();
+		return scoreboardString;
+	}
+
+	/**
+	 * This method takes the instruction with the lowest order and puts it into the writeback Array
+	 *
+	 */
+	private void writeBackInOrderOneClock() {
+
+		int currentOrder;
+		if (this.writeback.size() == 0) {
+			currentOrder = 0;
+		} else {
+			currentOrder = this.writeback.get(this.writeback.size() - 1).getOrder();
+		}
+
+		if (this.FL.WARC.getOrder() - 1 == currentOrder) {
+			this.FL.WARC.setWriteCycle(this.cycle);
+			this.writeback.add(this.FL.WARC);
+			this.storeRegister.addRegister(this.FL.WARC.getFirstR());
+			this.currentRegister.removeRegister(this.FL.WARC.getFirstR());
+			this.FL.WARC = new Instruction();
+		} else if (this.M.WARC.getOrder() - 1 == currentOrder) {
+			this.M.WARC.setWriteCycle(this.cycle);
+			this.writeback.add(this.M.WARC);
+			this.storeRegister.addRegister(this.M.WARC.getFirstR());
+			this.currentRegister.removeRegister(this.M.WARC.getFirstR());
+			this.M.WARC = new Instruction();
+		} else if (this.DIV.WARC.getOrder() - 1 == currentOrder) {
+			this.DIV.WARC.setWriteCycle(this.cycle);
+			this.writeback.add(this.DIV.WARC);
+			this.storeRegister.addRegister(this.DIV.WARC.getFirstR());
+			this.currentRegister.removeRegister(this.DIV.WARC.getFirstR());
+			this.DIV.WARC = new Instruction();
+		} else if (this.INT.WARC.getOrder() - 1 == currentOrder) {
+			this.INT.WARC.setWriteCycle(this.cycle);
+			this.writeback.add(this.INT.WARC);
+			this.storeRegister.addRegister(this.INT.WARC.getFirstR());
+			this.currentRegister.removeRegister(this.INT.WARC.getFirstR());
+			this.INT.WARC = new Instruction();
+		}
+	}
 
 }

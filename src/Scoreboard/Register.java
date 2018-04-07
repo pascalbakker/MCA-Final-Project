@@ -1,3 +1,4 @@
+
 package Scoreboard;
 
 import java.util.ArrayList;
@@ -6,23 +7,23 @@ import java.util.ArrayList;
 //STORES THE CURRENT REGISTERS
 public class Register {
 
-    ArrayList<String> registers;
+	ArrayList<String> registers;
 
-    public Register(){
-        registers = new ArrayList<String>();
-    }
+	public Register() {
+		this.registers = new ArrayList<>();
+	}
 
-    public void addRegister(String register){
-        registers.add(register);
-    }
+	public void addRegister(final String register) {
 
-    public boolean instructionCanBeExecuted(Instruction instruction){
-        if(((instruction.secondR.charAt(0)=='R'&&registers.contains(instruction.secondR))||instruction.secondR.charAt(0)!='R')&&
-                ((instruction.thirdR.charAt(0)=='R'&&registers.contains(instruction.thirdR))||instruction.thirdR.charAt(0)!='R')){
-            return true;
-        }
-        return false;
-    }
+		this.registers.add(register);
+	}
 
+	public boolean instructionCanBeExecuted(final Instruction instruction) {
+
+		if ((instruction.getSecondR().charAt(0) == 'R' && this.registers.contains(instruction.getSecondR()) || instruction.getSecondR().charAt(0) != 'R') && (instruction.getThirdR().charAt(0) == 'R' && this.registers.contains(instruction.getThirdR()) || instruction.getThirdR().charAt(0) != 'R')) {
+			return true;
+		}
+		return false;
+	}
 
 }
