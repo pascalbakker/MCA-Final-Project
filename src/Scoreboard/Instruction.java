@@ -54,6 +54,8 @@ public class Instruction implements Comparable<Instruction> {
 		this.thirdR = null;
 		this.command = null;
 	}
+	
+
 
 	public Instruction(final InstructionType instructType, final int order) {
 		this.instructionType = instructType;
@@ -147,6 +149,13 @@ public class Instruction implements Comparable<Instruction> {
 			return " ";
 		}
 		return this.instructionType + "";
+	}
+	
+	public String printInstruction() {
+		if (this.instructionType == InstructionType.None) {
+			return " ";
+		}
+		return this.instructionType+" "+firstR+" "+secondR+" "+thirdR;
 	}
 
 }

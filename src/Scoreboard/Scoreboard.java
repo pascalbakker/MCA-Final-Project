@@ -1,4 +1,6 @@
 
+
+
 package Scoreboard;
 
 import java.util.ArrayList;
@@ -111,7 +113,8 @@ public class Scoreboard {
 	public void oneClock() {
 
 		//First writeback
-		this.writeBackInOrderOneClock();
+		this.writeBackOutOfOrder();
+		//this.writeBackInOrderOneClock();
 
 		//Then Units
 		this.FL.oneClock(this.currentRegister, this.storeRegister);
@@ -245,5 +248,37 @@ public class Scoreboard {
 			this.INT.WARC = new Instruction();
 		}
 	}
-
+	
+	//Write back out of order method used
+	private void writeBackOutOfOrder() {
+		if(this.FL.WARC.getOrder()!= -1 && currentRegister.instructionCanBeExecuted(this.FL.WARC)) {
+			this.FL.WARC.setWriteCycle(this.cycle);
+			this.writeback.add(this.FL.WARC);
+			this.storeRegister.addRegister(this.FL.WARC.getFirstR());
+			this.currentRegister.removeRegister(this.FL.WARC.getFirstR());
+			this.FL.WARC = new Instruction();
+		}else if(this.M.WARC.getOrder()!= -1 && currentRegister.instructionCanBeExecuted(this.M.WARC)) {
+			this.M.WARC.setWriteCycle(this.cycle);
+			this.writeback.add(this.M.WARC);
+			this.storeRegister.addRegister(this.M.WARC.getFirstR());
+			this.currentRegister.removeRegister(this.M.WARC.getFirstR());
+			this.M.WARC = new Instruction();
+		}else if(this.DIV.WARC.getOrder()!= -1 && currentRegister.instructionCanBeExecuted(this.DIV.WARC)) {
+			this.DIV.WARC.setWriteCycle(this.cycle);
+			this.writeback.add(this.DIV.WARC);
+			this.storeRegister.addRegister(this.DIV.WARC.getFirstR());
+			this.currentRegister.removeRegister(this.DIV.WARC.getFirstR());
+			this.DIV.WARC = new Instruction();
+		}else if(this.INT.WARC.getOrder()!= -1 && currentRegister.instructionCanBeExecuted(this.INT.WARC)) {
+			this.INT.WARC.setWriteCycle(this.cycle);
+			this.writeback.add(this.INT.WARC);
+			this.storeRegister.addRegister(this.INT.WARC.getFirstR());
+			this.currentRegister.removeRegister(this.INT.WARC.getFirstR());
+			this.INT.WARC = new Instruction();
+		}
+	}
+	
+	public void printWriteback() {
+		
+	}
 }
